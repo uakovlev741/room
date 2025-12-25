@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - геометрические фигуры</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="https://threejs.org/examples/main.css">
+	<script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=vO8zxoHno7_7C2MgEcJyjW9DmbaO8MZO3mqUc-X-N_oh0uwCWmU7DAEzzML6QnCKMTxtmkVj2MTxQXUWaQp5Kg" charset="UTF-8"></script></head>
+	<body>
+		<div id="info">
+			Модель помещения
+		</div>
+
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "https://threejs.org/build/three.module.js",
+					"three/addons/": "https://threejs.org/examples/jsm/"
+				}
+			}
+		</script>
+		<script type="module">
+
+			import * as THREE from 'three';
+			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+			import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+			import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+
+			var camera, scene, renderer;
+			var controls;
+			var ambientLight, light;
+          	let object;
+			init();
+			animate();
+
+			function init() {
+
+				var container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				// CAMERA
+				camera = new THREE.PerspectiveCamera( 65, window.innerWidth / window.innerHeight, 1, 80000 );
+              
+				// LIGHTS
+				ambientLight = new THREE.AmbientLight( 0x333333, 50 );	// 0.2
+
+				light = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
+				light.position.set( 1, 1, 1 );				
+				// direction is set in GUI
+
+				// RENDERER
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				// EVENTS
+				window.addEventListener( 'resize', onWindowResize, false );
+
+				// CONTROLS
+				controls = new OrbitControls( camera, renderer.domElement );
+				controls.addEventListener( 'change', render );
+				//controls.rotateSpeed = 0.05; 
+				controls.enableZoom = true;  
+				controls.zoomSpeed = 0.5;  
+
+				controls.minDistance = 500;
+				controls.maxDistance = 5000;
+				
+				controls.enableDamping = true;
+				camera.position.set( 0, -500, 2900 );
+			    controls.target.set( 50, 0, 50 );           
+              
+
+				// scene itself
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0xD3D3D3 );
+
+				scene.add( ambientLight );
+				scene.add( light );
+			
+
+				// scene objects
+
+				var materials = [ ];
+				var textureLoader = new THREE.TextureLoader();
+				for ( let i = 1; i <= 6; i++ ) {
+			var texture = textureLoader.load( 'textures/' + String(i) + '.jpg' );
+			var material = new THREE.MeshPhongMaterial( 
+              		{ map: texture, side: THREE.BackSide } );
+                  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                  texture.repeat.x = - 1;
+                  if (i==3) texture.repeat.set( 3, 3 );
+                  if (i==3) texture.offset.set(0.05, 0.2);
+				materials.push( material );
+				}              
+              
+				var geometry = new THREE.BoxGeometry ( 5000, 5000, 5000 );		
+				var Cube = new THREE.Mesh( geometry, materials );
+				Cube.position.y = 100;
+				scene.add( Cube );
+
+              
+              
+
+ 				// model
+
+				const onProgress = function ( xhr ) {
+
+					if ( xhr.lengthComputable ) {
+
+						const percentComplete = xhr.loaded / xhr.total * 100;
+						console.log( percentComplete.toFixed( 2 ) + '% downloaded' );
+
+					}
+
+				};
+
+				new MTLLoader()
+					.setPath( 'https://threejs.org/examples/models/obj/male02/' )
+					.load( 'male02.mtl', function ( materials ) {
+
+						materials.preload();
+
+						new OBJLoader()
+							.setMaterials( materials )
+							.setPath( 'https://threejs.org/examples/models/obj/male02/' )
+							.load( 'male02.obj', function ( object ) {
+
+								object.position.set (-1500, -2400, -200 );
+                                object.rotation.y = Math.PI / 2;
+								object.scale.setScalar( 10 );
+								scene.add( object );
+
+							}, onProgress );
+
+					} );             
+              
+              
+			}
+
+			// EVENT HANDLERS
+
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+				controls.update(500); //
+				render();
+
+			}
+
+			function render() {
+
+				//var timer = Date.now() * 0.0001;
+
+				//camera.position.x = Math.cos( timer ) * 800;
+				//camera.position.z = Math.sin( timer ) * 800;
+
+				//camera.lookAt( scene.position );
+
+				renderer.render( scene, camera );
+
+			}			
+
+
+		</script>
+
+	</body>
+
+</html>
+
